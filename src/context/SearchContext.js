@@ -3,7 +3,11 @@ import React, { createContext, useContext, useState } from 'react';
 const SearchContext = createContext(null);
 export const useSearch = () => useContext(SearchContext);
 
-export function SearchProvider({ children, searchService }) {
+export function SearchProvider({
+  children,
+  searchService,
+  localSearchRepository
+}) {
   const [keywords, setKeywords] = useState([]);
   const [timerId, setTimerId] = useState(null);
   const [userInput, setUserInput] = useState('');
@@ -26,9 +30,13 @@ export function SearchProvider({ children, searchService }) {
     }
 
     const newTimerId = setTimeout(() => {
+      if (localSearchRepository.get(name)) {
+        return setKeywords(localSearchRepository.get(name));
+      }
       search(name)
         .then((result) => {
           setKeywords(result);
+          localSearchRepository.save(name, result);
         })
         .catch((error) => {
           console.error('API 요청 에러:', error);
