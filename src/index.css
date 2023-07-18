@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+#root {
+  @apply flex flex-col items-center w-full h-[50vh] py-4 md:py-8 px-2 bg-[#d0e8fd];
+}
