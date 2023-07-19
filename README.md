@@ -1,70 +1,80 @@
-# Getting Started with Create React App
+# 한국임상정보 검색 영역 클론 - (원티드 프리온보딩 인턴십 11기 4주차)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+- 이 프로젝트는 [assignment-api](https://github.com/walking-sunset/assignment-api)에 의존합니다. 해당 API를 설치하시고 서버를 `npm start`로 실행시켜야 제대로 동작합니다.
 
-## Available Scripts
+## 기능 시연
 
-In the project directory, you can run:
+<table>
+    <tbody>
+        <tr>
+            <th>시연</th>
+            <th>설명</th>
+        </tr>
+        <tr>
+            <td><img src="https://github.com/hsejsx/pre-onboarding-11th-4/assets/108166730/03224580-f0d7-4017-b92c-fc3f91cd5ac1"
+                    alt="" /></td>
+            <td>이슈 리스트<ul>
+                    <li>검색창에 검색어를 입력하면 추천 검색어가 나옵니다</li>
+                    <li>Tab을 누르면 다음 추천 검색어, Shift + Tab을 누르면 이전 추천 검색어를 focus 합니다</li>
+                </ul>
+            </td>
+        </tr>
+    </tbody>
+</table>
 
-### `npm start`
+## 기능 설명
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### API 호출별로 로컬 캐싱 구현
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- localStorage에 `검색어: 추천 검색어 배열`로 저장하여 검색 전 해당 `localStorage` item이 있는지 확인하여, 있으면 저장된 데이터를, 없으면 API 호출하여 추천 검색어를 보이게 설정했습니다.
 
-### `npm test`
+```js
+// LocalSearchRepository.js
+export class LocalSearchRepository {
+  save(name, keywords) {
+    localStorage.setItem(name, JSON.stringify([...keywords]));
+  }
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+  get(name) {
+    return JSON.parse(localStorage.getItem(name));
+  }
+}
+```
 
-### `npm run build`
+### 입력마다 API 호출하지 않도록 API 호출 횟수를 줄이는 전략 수립 및 실행
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- 입력마다 API를 호출하지 않도록 입력시 `setTimeout`을 이용하여 1초 뒤에 검색 되도록 했습니다. 물론 호출 전에 또 다른 입력이 있을 시 기존 `setTimeout`을 지우고 다시 1초 뒤에 검색 되도록 설정했습니다.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```js
+// SearchContext.js 코드 일부
+const delaySearch = (name) => {
+  if (timerId) {
+    clearTimeout(timerId);
+  }
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+  if (!name) {
+    setKeywords([]);
+    return;
+  }
 
-### `npm run eject`
+  const newTimerId = setTimeout(() => {
+    if (localSearchRepository.get(name)) {
+      return setKeywords(localSearchRepository.get(name));
+    }
+    search(name)
+      .then((result) => {
+        setKeywords(result);
+        localSearchRepository.save(name, result);
+      })
+      .catch((error) => {
+        console.error('API 요청 에러:', error);
+      });
+  }, 1000);
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+  setTimerId(newTimerId);
+};
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 키보드만으로 추천 검색어들로 이동 가능하도록 구현
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- `Tab`키를 누르면 다음 추천 검색어로, `Shift + Tab`을 누르면 이전 추천 검색어로 이동합니다. 추천 검색어에 `focus`된 상태로 `enter`를 누르면 해당 검색어로 입력값이 바뀝니다.
