@@ -6,7 +6,7 @@ export default function SearchRecommend() {
   const { keywords } = useSearch();
 
   return (
-    <div className='absolute w-full px-2 top-[120%] bg-white rounded-2xl'>
+    <div className='absolute w-full px-2 top-[120%] bg-white rounded-2xl shadow-lg'>
       <header className='p-4 px-2 text-gray-500'>
         <span>추천 검색어</span>
       </header>

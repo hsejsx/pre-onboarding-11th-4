@@ -12,8 +12,11 @@ export default function Keyword({ name }) {
         saveUserInput(name);
       }}
     >
-      <FaSearch className='mr-4 text-gray-500' aria-hidden='true' />
-      <span>{name}</span>
+      <FaSearch
+        className='mr-4 text-gray-500 flex-shrink-0'
+        aria-hidden='true'
+      />
+      <span className='text-left'>{name}</span>
     </button>
   );
 }
